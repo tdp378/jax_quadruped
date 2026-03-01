@@ -1,0 +1,37 @@
+<?xml version="1.0" ?>
+<robot name="jax" xmlns:xacro="http://www.ros.org/wiki/xacro" >
+
+  <ros2_control name="GazeboSimSystem" type="system">
+    <hardware>
+      <plugin>gz_ros2_control/GazeboSimSystem</plugin>
+    </hardware>
+
+    <xacro:macro name="jax_joint_control" params="joint_name">
+      <joint name="${joint_name}">
+        <command_interface name="position"/>
+        <state_interface name="position">
+          <param name="initial_value">0.0</param>
+        </state_interface>
+        <state_interface name="velocity"/>
+      </joint>
+    </xacro:macro>
+
+    <xacro:jax_joint_control joint_name="fl_hip_joint"/>
+    <xacro:jax_joint_control joint_name="fl_thigh_joint"/>
+    <xacro:jax_joint_control joint_name="fl_calf_joint"/>
+
+    <xacro:jax_joint_control joint_name="fr_hip_joint"/>
+    <xacro:jax_joint_control joint_name="fr_thigh_joint"/>
+    <xacro:jax_joint_control joint_name="fr_calf_joint"/>
+
+    <xacro:jax_joint_control joint_name="rl_hip_joint"/>
+    <xacro:jax_joint_control joint_name="rl_thigh_joint"/>
+    <xacro:jax_joint_control joint_name="rl_calf_joint"/>
+
+    <xacro:jax_joint_control joint_name="rr_hip_joint"/>
+    <xacro:jax_joint_control joint_name="rr_thigh_joint"/>
+    <xacro:jax_joint_control joint_name="rr_calf_joint"/>
+
+  </ros2_control>
+
+</robot>

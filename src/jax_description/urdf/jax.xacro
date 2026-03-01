@@ -1,0 +1,493 @@
+<?xml version="1.0" ?>
+<robot name="jax" xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+  <xacro:include filename="$(find jax_description)/urdf/materials.xacro" />
+  <xacro:include filename="$(find jax_description)/urdf/jax.trans" />
+  <xacro:include filename="$(find jax_description)/urdf/jax.gazebo" />
+
+  <link name="base_footprint"/>
+
+  <joint name="base_joint" type="fixed">
+    <parent link="base_footprint"/>
+    <child link="base_link"/>
+    <origin xyz="0 0 0.19" rpy="0 0 0"/>
+  </joint>
+
+  <link name="base_link">
+    <inertial>
+      <origin xyz="0.005986 -0.002074 0.003345" rpy="0 0 0"/>
+      <mass value="1.0715"/>
+      <inertia ixx="0.003773" iyy="0.014771" izz="0.016668" ixy="-1.9e-05" iyz="-4e-06" ixz="-2.3e-05"/>
+    </inertial>
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry>
+        <mesh filename="package://jax_description/meshes/base_link.stl" scale="0.001 0.001 0.001"/>
+      </geometry>
+      <material name="silver"/>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry>
+        <mesh filename="package://jax_description/meshes/base_link.stl" scale="0.001 0.001 0.001"/>
+      </geometry>
+    </collision>
+  </link>
+
+  <joint name="fl_hip_joint" type="revolute">
+    <origin xyz="0.080818 0.059103 -0.003275" rpy="0 0 0"/>
+    <parent link="base_link"/>
+    <child link="fl_hip"/>
+    <axis xyz="1.0 0.0 0.0"/>
+    <limit upper="0.523599" lower="-0.523599" effort="100" velocity="100"/>
+  </joint>
+
+  <link name="fl_hip">
+    <inertial>
+      <origin xyz="0.031213 0.013853 0.006165" rpy="0 0 0"/>
+      <mass value="0.9724"/>
+      <inertia ixx="0.000661" iyy="0.000731" izz="0.000551" ixy="4.1e-05" iyz="-0.00014" ixz="4.7e-05"/>
+    </inertial>
+    <visual>
+      <origin xyz="-0.080818 -0.059103 0.003275" rpy="0 0 0"/>
+      <geometry>
+        <mesh filename="package://jax_description/meshes/fl_hip_1.stl" scale="0.001 0.001 0.001"/>
+      </geometry>
+      <material name="black"/>
+    </visual>
+    <collision>
+      <origin xyz="-0.080818 -0.059103 0.003275" rpy="0 0 0"/>
+      <geometry>
+        <mesh filename="package://jax_description/meshes/fl_hip_1.stl" scale="0.001 0.001 0.001"/>
+      </geometry>
+    </collision>
+  </link>
+
+  <joint name="fl_thigh_joint" type="revolute">
+    <origin xyz="0.023 0.03585 0.0145" rpy="0 0 0"/>
+    <parent link="fl_hip"/>
+    <child link="fl_thigh"/>
+    <axis xyz="0.0 1.0 0.0"/>
+    <limit upper="1.396263" lower="-1.396263" effort="100" velocity="100"/>
+  </joint>
+
+  <link name="fl_thigh">
+    <inertial>
+      <origin xyz="-0.031475 0.011833 -0.043448" rpy="0 0 0"/>
+      <mass value="0.0426"/>
+      <inertia ixx="5.5e-05" iyy="8.4e-05" izz="3e-05" ixy="1e-06" iyz="2e-06" ixz="-3.8e-05"/>
+    </inertial>
+    <visual>
+      <origin xyz="-0.103818 -0.094953 -0.011225" rpy="0 0 0"/>
+      <geometry>
+        <mesh filename="package://jax_description/meshes/fl_thigh_1.stl" scale="0.001 0.001 0.001"/>
+      </geometry>
+      <material name="silver"/>
+    </visual>
+    <collision>
+      <origin xyz="-0.103818 -0.094953 -0.011225" rpy="0 0 0"/>
+      <geometry>
+        <mesh filename="package://jax_description/meshes/fl_thigh_1.stl" scale="0.001 0.001 0.001"/>
+      </geometry>
+    </collision>
+  </link>
+
+  <joint name="fl_calf_joint" type="revolute">
+    <origin xyz="-0.076267 0.0063 -0.105278" rpy="0 0 0"/>
+    <parent link="fl_thigh"/>
+    <child link="fl_calf"/>
+    <axis xyz="0.0 1.0 0.0"/>
+    <limit upper="1.047198" lower="-1.047198" effort="100" velocity="100"/>
+  </joint>
+
+  <link name="fl_calf">
+    <inertial>
+      <origin xyz="0.038646 0.006310 -0.035713" rpy="0 0 0"/>
+      <mass value="0.0471"/>
+      <inertia ixx="4.2e-05" iyy="8.6e-05" izz="4.9e-05" ixy="-2e-06" iyz="2e-06" ixz="4.1e-05"/>
+    </inertial>
+    <visual>
+      <origin xyz="-0.027551 -0.101253 0.094053" rpy="0 0 0"/>
+      <geometry>
+        <mesh filename="package://jax_description/meshes/fl_calf_1.stl" scale="0.001 0.001 0.001"/>
+      </geometry>
+      <material name="black"/>
+    </visual>
+    <collision>
+      <origin xyz="-0.027551 -0.101253 0.094053" rpy="0 0 0"/>
+      <geometry>
+        <mesh filename="package://jax_description/meshes/fl_calf_1.stl" scale="0.001 0.001 0.001"/>
+      </geometry>
+    </collision>
+  </link>
+
+  <joint name="fl_foot_joint" type="fixed">
+    <origin xyz="0.093999 0.007 -0.093222" rpy="0 0 0"/>
+    <parent link="fl_calf"/>
+    <child link="fl_foot"/>
+  </joint>
+
+  <link name="fl_foot">
+    <inertial>
+      <origin xyz="0 0 -0.003" rpy="0 0 0"/>
+      <mass value="0.011"/>
+      <inertia ixx="1e-06" iyy="1e-06" izz="1e-06" ixy="0" iyz="0" ixz="0"/>
+    </inertial>
+    <visual>
+      <origin xyz="-0.12155 -0.108253 0.187275" rpy="0 0 0"/>
+      <geometry>
+        <mesh filename="package://jax_description/meshes/fl_foot_1.stl" scale="0.001 0.001 0.001"/>
+      </geometry>
+      <material name="silver"/>
+    </visual>
+    <collision>
+      <origin xyz="-0.12155 -0.108253 0.187275" rpy="0 0 0"/>
+      <geometry>
+        <mesh filename="package://jax_description/meshes/fl_foot_1.stl" scale="0.001 0.001 0.001"/>
+      </geometry>
+    </collision>
+  </link>
+
+  <joint name="rl_hip_joint" type="revolute">
+    <origin xyz="-0.076482 0.059103 -0.003275" rpy="0 0 0"/>
+    <parent link="base_link"/>
+    <child link="rl_hip"/>
+    <axis xyz="-1.0 0.0 0.0"/>
+    <limit upper="0.523599" lower="-0.523599" effort="100" velocity="100"/>
+  </joint>
+
+  <link name="rl_hip">
+    <inertial>
+      <origin xyz="-0.034786 0.013853 0.006165" rpy="0 0 0"/>
+      <mass value="0.9724"/>
+      <inertia ixx="0.000661" iyy="0.000731" izz="0.000551" ixy="4.1e-05" iyz="-0.00014" ixz="4.7e-05"/>
+    </inertial>
+    <visual>
+      <origin xyz="0.076482 -0.059103 0.003275" rpy="0 0 0"/>
+      <geometry>
+        <mesh filename="package://jax_description/meshes/rl_hip_1.stl" scale="0.001 0.001 0.001"/>
+      </geometry>
+      <material name="black"/>
+    </visual>
+    <collision>
+      <origin xyz="0.076482 -0.059103 0.003275" rpy="0 0 0"/>
+      <geometry>
+        <mesh filename="package://jax_description/meshes/rl_hip_1.stl" scale="0.001 0.001 0.001"/>
+      </geometry>
+    </collision>
+  </link>
+
+  <joint name="rl_thigh_joint" type="revolute">
+    <origin xyz="-0.043 0.03585 0.0145" rpy="0 0 0"/>
+    <parent link="rl_hip"/>
+    <child link="rl_thigh"/>
+    <axis xyz="0.0 1.0 0.0"/>
+    <limit upper="1.396263" lower="-1.396263" effort="100" velocity="100"/>
+  </joint>
+
+  <link name="rl_thigh">
+    <inertial>
+      <origin xyz="-0.031475 0.011833 -0.043448" rpy="0 0 0"/>
+      <mass value="0.0426"/>
+      <inertia ixx="5.5e-05" iyy="8.4e-05" izz="3e-05" ixy="1e-06" iyz="2e-06" ixz="-3.8e-05"/>
+    </inertial>
+    <visual>
+      <origin xyz="0.119482 -0.094953 -0.011225" rpy="0 0 0"/>
+      <geometry>
+        <mesh filename="package://jax_description/meshes/rl_thigh_1.stl" scale="0.001 0.001 0.001"/>
+      </geometry>
+      <material name="silver"/>
+    </visual>
+    <collision>
+      <origin xyz="0.119482 -0.094953 -0.011225" rpy="0 0 0"/>
+      <geometry>
+        <mesh filename="package://jax_description/meshes/rl_thigh_1.stl" scale="0.001 0.001 0.001"/>
+      </geometry>
+    </collision>
+  </link>
+
+  <joint name="rl_calf_joint" type="revolute">
+    <origin xyz="-0.076267 0.0063 -0.105277" rpy="0 0 0"/>
+    <parent link="rl_thigh"/>
+    <child link="rl_calf"/>
+    <axis xyz="0.0 1.0 0.0"/>
+    <limit upper="1.047198" lower="-1.047198" effort="100" velocity="100"/>
+  </joint>
+
+  <link name="rl_calf">
+    <inertial>
+      <origin xyz="0.038646 0.006310 -0.035714" rpy="0 0 0"/>
+      <mass value="0.0471"/>
+      <inertia ixx="4.2e-05" iyy="8.6e-05" izz="4.9e-05" ixy="-2e-06" iyz="2e-06" ixz="4.1e-05"/>
+    </inertial>
+    <visual>
+      <origin xyz="0.195749 -0.101253 0.094052" rpy="0 0 0"/>
+      <geometry>
+        <mesh filename="package://jax_description/meshes/rl_calf_1.stl" scale="0.001 0.001 0.001"/>
+      </geometry>
+      <material name="black"/>
+    </visual>
+    <collision>
+      <origin xyz="0.195749 -0.101253 0.094052" rpy="0 0 0"/>
+      <geometry>
+        <mesh filename="package://jax_description/meshes/rl_calf_1.stl" scale="0.001 0.001 0.001"/>
+      </geometry>
+    </collision>
+  </link>
+
+  <joint name="rl_foot_joint" type="fixed">
+    <origin xyz="0.093999 0.007 -0.093223" rpy="0 0 0"/>
+    <parent link="rl_calf"/>
+    <child link="rl_foot"/>
+  </joint>
+
+  <link name="rl_foot">
+    <inertial>
+      <origin xyz="0 0 -0.003" rpy="0 0 0"/>
+      <mass value="0.011"/>
+      <inertia ixx="1e-06" iyy="1e-06" izz="1e-06" ixy="0" iyz="0" ixz="0"/>
+    </inertial>
+    <visual>
+      <origin xyz="0.10175 -0.108253 0.187275" rpy="0 0 0"/>
+      <geometry>
+        <mesh filename="package://jax_description/meshes/rl_foot_1.stl" scale="0.001 0.001 0.001"/>
+      </geometry>
+      <material name="silver"/>
+    </visual>
+    <collision>
+      <origin xyz="0.10175 -0.108253 0.187275" rpy="0 0 0"/>
+      <geometry>
+        <mesh filename="package://jax_description/meshes/rl_foot_1.stl" scale="0.001 0.001 0.001"/>
+      </geometry>
+    </collision>
+  </link>
+
+  <joint name="rr_hip_joint" type="revolute">
+    <origin xyz="-0.076482 -0.062897 -0.003275" rpy="0 0 0"/>
+    <parent link="base_link"/>
+    <child link="rr_hip"/>
+    <axis xyz="-1.0 0.0 0.0"/>
+    <limit upper="0.523599" lower="-0.523599" effort="100" velocity="100"/>
+  </joint>
+
+  <link name="rr_hip">
+    <inertial>
+      <origin xyz="-0.034786 -0.013853 0.006165" rpy="0 0 0"/>
+      <mass value="0.9724"/>
+      <inertia ixx="0.000661" iyy="0.000731" izz="0.000551" ixy="-4.1e-05" iyz="0.00014" ixz="4.7e-05"/>
+    </inertial>
+    <visual>
+      <origin xyz="0.076482 0.062897 0.003275" rpy="0 0 0"/>
+      <geometry>
+        <mesh filename="package://jax_description/meshes/rr_hip_1.stl" scale="0.001 0.001 0.001"/>
+      </geometry>
+      <material name="black"/>
+    </visual>
+    <collision>
+      <origin xyz="0.076482 0.062897 0.003275" rpy="0 0 0"/>
+      <geometry>
+        <mesh filename="package://jax_description/meshes/rr_hip_1.stl" scale="0.001 0.001 0.001"/>
+      </geometry>
+    </collision>
+  </link>
+
+  <joint name="rr_thigh_joint" type="revolute">
+    <origin xyz="-0.043 -0.03585 0.0145" rpy="0 0 0"/>
+    <parent link="rr_hip"/>
+    <child link="rr_thigh"/>
+    <axis xyz="0.0 1.0 0.0"/>
+    <limit upper="1.570796" lower="-1.570796" effort="100" velocity="100"/>
+  </joint>
+
+  <link name="rr_thigh">
+    <inertial>
+      <origin xyz="-0.031475 -0.011833 -0.043448" rpy="0 0 0"/>
+      <mass value="0.0426"/>
+      <inertia ixx="5.5e-05" iyy="8.4e-05" izz="3e-05" ixy="-1e-06" iyz="-2e-06" ixz="-3.8e-05"/>
+    </inertial>
+    <visual>
+      <origin xyz="0.119482 0.098747 -0.011225" rpy="0 0 0"/>
+      <geometry>
+        <mesh filename="package://jax_description/meshes/rr_thigh_1.stl" scale="0.001 0.001 0.001"/>
+      </geometry>
+      <material name="silver"/>
+    </visual>
+    <collision>
+      <origin xyz="0.119482 0.098747 -0.011225" rpy="0 0 0"/>
+      <geometry>
+        <mesh filename="package://jax_description/meshes/rr_thigh_1.stl" scale="0.001 0.001 0.001"/>
+      </geometry>
+    </collision>
+  </link>
+
+  <joint name="rr_calf_joint" type="revolute">
+    <origin xyz="-0.076267 -0.0063 -0.105278" rpy="0 0 0"/>
+    <parent link="rr_thigh"/>
+    <child link="rr_calf"/>
+    <axis xyz="0.0 1.0 0.0"/>
+    <limit upper="1.047198" lower="-1.047198" effort="100" velocity="100"/>
+  </joint>
+
+  <link name="rr_calf">
+    <inertial>
+      <origin xyz="0.038646 -0.006310 -0.035713" rpy="0 0 0"/>
+      <mass value="0.0471"/>
+      <inertia ixx="4.2e-05" iyy="8.6e-05" izz="4.9e-05" ixy="2e-06" iyz="-2e-06" ixz="4.1e-05"/>
+    </inertial>
+    <visual>
+      <origin xyz="0.195749 0.105047 0.094053" rpy="0 0 0"/>
+      <geometry>
+        <mesh filename="package://jax_description/meshes/rr_calf_1.stl" scale="0.001 0.001 0.001"/>
+      </geometry>
+      <material name="black"/>
+    </visual>
+    <collision>
+      <origin xyz="0.195749 0.105047 0.094053" rpy="0 0 0"/>
+      <geometry>
+        <mesh filename="package://jax_description/meshes/rr_calf_1.stl" scale="0.001 0.001 0.001"/>
+      </geometry>
+    </collision>
+  </link>
+
+  <joint name="rr_foot_joint" type="fixed">
+    <origin xyz="0.093999 -0.007 -0.093222" rpy="0 0 0"/>
+    <parent link="rr_calf"/>
+    <child link="rr_foot"/>
+  </joint>
+
+  <link name="rr_foot">
+    <inertial>
+      <origin xyz="0 0 -0.003" rpy="0 0 0"/>
+      <mass value="0.011"/>
+      <inertia ixx="1e-06" iyy="1e-06" izz="1e-06" ixy="0" iyz="0" ixz="0"/>
+    </inertial>
+    <visual>
+      <origin xyz="0.10175 0.112047 0.187275" rpy="0 0 0"/>
+      <geometry>
+        <mesh filename="package://jax_description/meshes/rr_foot_1.stl" scale="0.001 0.001 0.001"/>
+      </geometry>
+      <material name="silver"/>
+    </visual>
+    <collision>
+      <origin xyz="0.10175 0.112047 0.187275" rpy="0 0 0"/>
+      <geometry>
+        <mesh filename="package://jax_description/meshes/rr_foot_1.stl" scale="0.001 0.001 0.001"/>
+      </geometry>
+    </collision>
+  </link>
+
+  <joint name="fr_hip_joint" type="revolute">
+    <origin xyz="0.080818 -0.062897 -0.003275" rpy="0 0 0"/>
+    <parent link="base_link"/>
+    <child link="fr_hip"/>
+    <axis xyz="1.0 0.0 0.0"/>
+    <limit upper="0.523599" lower="-0.523599" effort="100" velocity="100"/>
+  </joint>
+
+  <link name="fr_hip">
+    <inertial>
+      <origin xyz="0.031213 -0.013853 0.006165" rpy="0 0 0"/>
+      <mass value="0.9724"/>
+      <inertia ixx="0.000661" iyy="0.000731" izz="0.000551" ixy="-4.1e-05" iyz="0.00014" ixz="4.7e-05"/>
+    </inertial>
+    <visual>
+      <origin xyz="-0.080818 0.062897 0.003275" rpy="0 0 0"/>
+      <geometry>
+        <mesh filename="package://jax_description/meshes/fr_hip_1.stl" scale="0.001 0.001 0.001"/>
+      </geometry>
+      <material name="black"/>
+    </visual>
+    <collision>
+      <origin xyz="-0.080818 0.062897 0.003275" rpy="0 0 0"/>
+      <geometry>
+        <mesh filename="package://jax_description/meshes/fr_hip_1.stl" scale="0.001 0.001 0.001"/>
+      </geometry>
+    </collision>
+  </link>
+
+  <joint name="fr_thigh_joint" type="revolute">
+    <origin xyz="0.023 -0.03585 0.0145" rpy="0 0 0"/>
+    <parent link="fr_hip"/>
+    <child link="fr_thigh"/>
+    <axis xyz="0.0 1.0 0.0"/>
+    <limit upper="1.570796" lower="-1.570796" effort="100" velocity="100"/>
+  </joint>
+
+  <link name="fr_thigh">
+    <inertial>
+      <origin xyz="-0.031475 -0.011833 -0.043448" rpy="0 0 0"/>
+      <mass value="0.0426"/>
+      <inertia ixx="5.5e-05" iyy="8.4e-05" izz="3e-05" ixy="-1e-06" iyz="-2e-06" ixz="-3.8e-05"/>
+    </inertial>
+    <visual>
+      <origin xyz="-0.103818 0.098747 -0.011225" rpy="0 0 0"/>
+      <geometry>
+        <mesh filename="package://jax_description/meshes/fr_thigh_1.stl" scale="0.001 0.001 0.001"/>
+      </geometry>
+      <material name="silver"/>
+    </visual>
+    <collision>
+      <origin xyz="-0.103818 0.098747 -0.011225" rpy="0 0 0"/>
+      <geometry>
+        <mesh filename="package://jax_description/meshes/fr_thigh_1.stl" scale="0.001 0.001 0.001"/>
+      </geometry>
+    </collision>
+  </link>
+
+  <joint name="fr_calf_joint" type="revolute">
+    <origin xyz="-0.076267 -0.0063 -0.105277" rpy="0 0 0"/>
+    <parent link="fr_thigh"/>
+    <child link="fr_calf"/>
+    <axis xyz="0.0 1.0 0.0"/>
+    <limit upper="1.047198" lower="-1.047198" effort="100" velocity="100"/>
+  </joint>
+
+  <link name="fr_calf">
+    <inertial>
+      <origin xyz="0.038646 -0.006310 -0.035714" rpy="0 0 0"/>
+      <mass value="0.0471"/>
+      <inertia ixx="4.2e-05" iyy="8.6e-05" izz="4.9e-05" ixy="2e-06" iyz="-2e-06" ixz="4.1e-05"/>
+    </inertial>
+    <visual>
+      <origin xyz="-0.027551 0.105047 0.094052" rpy="0 0 0"/>
+      <geometry>
+        <mesh filename="package://jax_description/meshes/fr_calf_1.stl" scale="0.001 0.001 0.001"/>
+      </geometry>
+      <material name="black"/>
+    </visual>
+    <collision>
+      <origin xyz="-0.027551 0.105047 0.094052" rpy="0 0 0"/>
+      <geometry>
+        <mesh filename="package://jax_description/meshes/fr_calf_1.stl" scale="0.001 0.001 0.001"/>
+      </geometry>
+    </collision>
+  </link>
+
+  <joint name="fr_foot_joint" type="fixed">
+    <origin xyz="0.093999 -0.007 -0.093223" rpy="0 0 0"/>
+    <parent link="fr_calf"/>
+    <child link="fr_foot"/>
+  </joint>
+
+  <link name="fr_foot">
+    <inertial>
+      <origin xyz="0 0 -0.003" rpy="0 0 0"/>
+      <mass value="0.011"/>
+      <inertia ixx="1e-06" iyy="1e-06" izz="1e-06" ixy="0" iyz="0" ixz="0"/>
+    </inertial>
+    <visual>
+      <origin xyz="-0.12155 0.112047 0.187275" rpy="0 0 0"/>
+      <geometry>
+        <mesh filename="package://jax_description/meshes/fr_foot_1.stl" scale="0.001 0.001 0.001"/>
+      </geometry>
+      <material name="silver"/>
+    </visual>
+    <collision>
+      <origin xyz="-0.12155 0.112047 0.187275" rpy="0 0 0"/>
+      <geometry>
+        <mesh filename="package://jax_description/meshes/fr_foot_1.stl" scale="0.001 0.001 0.001"/>
+      </geometry>
+    </collision>
+  </link>
+
+</robot>

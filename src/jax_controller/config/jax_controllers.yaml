@@ -23,9 +23,42 @@ joint_trajectory_controller:
       - rr_hip_joint
       - rr_thigh_joint
       - rr_calf_joint
-    interface_name: position
+
     command_interfaces:
       - position
+
     state_interfaces:
       - position
       - velocity
+
+    # --- JAZZY SPECIFIC FIXES ---
+    # Replaces 'open_loop_control'. Tells JTC to use its own last 
+    # command as the starting point for the next move.
+    interpolate_from_desired_state: true
+    
+    # Set to empty string to prevent it from looking for a hardware scaling factor
+    speed_scaling_interface_name: ""
+    
+    # Optimization for simulation
+    allow_nonzero_velocity_at_trajectory_end: true
+    # ----------------------------
+
+    constraints:
+      stopped_velocity_tolerance: 0.01
+      goal_time: 0.0  # Infinite time to reach goal (prevents aborts)
+
+    # In Jazzy, if you want 'Open Loop' behavior, you must 
+    # set feedback gains to 0.0 for all joints.
+    gains:
+      fl_hip_joint: {p: 0.0, i: 0.0, d: 0.0}
+      fl_thigh_joint: {p: 0.0, i: 0.0, d: 0.0}
+      fl_calf_joint: {p: 0.0, i: 0.0, d: 0.0}
+      fr_hip_joint: {p: 0.0, i: 0.0, d: 0.0}
+      fr_thigh_joint: {p: 0.0, i: 0.0, d: 0.0}
+      fr_calf_joint: {p: 0.0, i: 0.0, d: 0.0}
+      rl_hip_joint: {p: 0.0, i: 0.0, d: 0.0}
+      rl_thigh_joint: {p: 0.0, i: 0.0, d: 0.0}
+      rl_calf_joint: {p: 0.0, i: 0.0, d: 0.0}
+      rr_hip_joint: {p: 0.0, i: 0.0, d: 0.0}
+      rr_thigh_joint: {p: 0.0, i: 0.0, d: 0.0}
+      rr_calf_joint: {p: 0.0, i: 0.0, d: 0.0}

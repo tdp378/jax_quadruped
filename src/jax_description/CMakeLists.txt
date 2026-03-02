@@ -14,6 +14,7 @@ install(
     launch
     urdf
     meshes
+    world
   DESTINATION share/${PROJECT_NAME}
 )
 

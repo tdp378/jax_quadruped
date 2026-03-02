@@ -15,16 +15,22 @@ def generate_launch_description():
     xacro_file = os.path.join(pkg_description, 'urdf', 'jax.xacro')
     robot_description_raw = xacro.process_file(xacro_file).toxml()
 
-    # 1. The Clock Bridge Node
-    # This replaces the manual "ros2 run ros_gz_bridge..." command
-    clock_bridge = Node(
+    # Define path to our new world file
+    world_path = '/home/tdp378/jax/src/jax_description/world/jax_world.sdf'
+
+    # 1. The Bridge Node (Clock AND IMU)
+    # We added the IMU string to the list so it bridges automatically
+    all_bridges = Node(
         package='ros_gz_bridge',
         executable='parameter_bridge',
-        arguments=['/clock@rosgraph_msgs/msg/Clock[gz.msgs.Clock'],
+        arguments=[
+            '/clock@rosgraph_msgs/msg/Clock[gz.msgs.Clock',
+            '/imu@sensor_msgs/msg/Imu[gz.msgs.IMU'
+        ],
         output='screen'
     )
 
-    # 2. Robot State Publisher (The "Ghost" in the machine)
+    # 2. Robot State Publisher
     node_robot_state_publisher = Node(
         package='robot_state_publisher',
         executable='robot_state_publisher',
@@ -32,15 +38,14 @@ def generate_launch_description():
         parameters=[{'robot_description': robot_description_raw, 'use_sim_time': True}]
     )
 
-    # 3. Gazebo Launch (The World)
-    # Using 'gz_sim' for Gazebo Harmonic (Jazzy default)
+    # 3. Gazebo Launch (Now using jax_world.sdf)
     gazebo = IncludeLaunchDescription(
         PythonLaunchDescriptionSource([os.path.join(
             get_package_share_directory('ros_gz_sim'), 'launch', 'gz_sim.launch.py')]),
-        launch_arguments={'gz_args': '-r empty.sdf'}.items(), # -r starts it immediately
+        launch_arguments={'gz_args': f'-r {world_path}'}.items(), 
     )
 
-    # 4. Spawn the Robot (The "Physical" Drop)
+    # 4. Spawn the Robot
     spawn_entity = Node(
         package='ros_gz_sim',
         executable='create',
@@ -48,8 +53,7 @@ def generate_launch_description():
         arguments=['-topic', 'robot_description', '-name', 'jax', '-z', '0.19'],
     )
 
-    # 5. Load Controllers (The "Brain")
-    # We load the broadcaster first, then the trajectory controller
+    # 5. Load Controllers
     load_joint_state_broadcaster = ExecuteProcess(
         cmd=['ros2', 'control', 'load_controller', '--set-state', 'active', 'joint_state_broadcaster'],
         output='screen'
@@ -61,12 +65,10 @@ def generate_launch_description():
     )
 
     return LaunchDescription([
-        # Start Gazebo and Robot State Publisher
         gazebo,
         node_robot_state_publisher,
         spawn_entity,
-        clock_bridge,
-        # Wait for the robot to spawn before loading controllers
+        all_bridges, # Updated from clock_bridge
         RegisterEventHandler(
             event_handler=OnProcessExit(
                 target_action=spawn_entity,

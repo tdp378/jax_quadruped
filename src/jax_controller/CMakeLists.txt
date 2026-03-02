@@ -33,6 +33,9 @@ install(
 # Install Python scripts
 install(PROGRAMS
   scripts/stand_node.py
+  scripts/imu_listener.py
+  scripts/jax_balancer.py
+  scripts/jax_teleop_body.py
   DESTINATION lib/${PROJECT_NAME}
 )
 

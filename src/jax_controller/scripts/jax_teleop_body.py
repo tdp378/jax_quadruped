@@ -97,12 +97,10 @@ class JaxTeleopBody(Node):
         z_fr = self.height - (self.pitch * 0.1) - (self.roll * 0.1)
         z_rl = self.height + (self.pitch * 0.1) + (self.roll * 0.1)
         z_rr = self.height + (self.pitch * 0.1) - (self.roll * 0.1)
-        # Add this to the Coordinate Prep section if you want the front to rise while sitting
+        
+        # Sitting Logic (Front Legs stay at 0.23m, Rear Legs lerp down to sit height)
         z_fl = z_fl * (1 - self.sit_lerp) + 0.23 * self.sit_lerp
         z_fr = z_fr * (1 - self.sit_lerp) + 0.23 * self.sit_lerp
-
-
-
         # Apply SIT LERP (Front stays up, Rear goes down)
         sit_height = 0.10 
         z_rl = z_rl * (1 - self.sit_lerp) + sit_height * self.sit_lerp

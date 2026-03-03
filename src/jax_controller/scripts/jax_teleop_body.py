@@ -6,14 +6,15 @@ import sys, select, termios, tty
 import math
 
 msg = """
-JAX Smooth Control
+JAX IK - Full Control (Fixed Wave & Sit)
 ---------------------------
 W / S : Lean Forward / Back
 A / D : Lean Left / Right
 R / F : Change Height
-H     : Toggle Wave
-K     : Toggle Sit
-Space : SMOOTH Reset to Zero
+H     : TOGGLE WAVE
+K     : TOGGLE SIT
+T     : TEST STEP (Front Left)
+Space : Reset All
 CTRL-C to quit
 """
 
@@ -22,21 +23,21 @@ class JaxTeleopBody(Node):
         super().__init__('jax_teleop_body')
         self.pub = self.create_publisher(JointTrajectory, '/joint_trajectory_controller/joint_trajectory', 10)
         
-        # Current Values (What the robot is actually doing)
-        self.pitch = 0.0
-        self.roll = 0.0
-        self.height = 0.0
+        # --- Physical Constants ---
+        self.L1 = 0.130011  
+        self.L2 = 0.132389  
+        self.perfect_h = 0.18  
         
-        # Target Values (Where we want to go)
-        self.t_pitch = 0.0
-        self.t_roll = 0.0
-        self.t_height = 0.0
+        # State Variables
+        self.pitch, self.roll, self.height = 0.0, 0.0, 0.18
+        self.t_pitch, self.t_roll, self.t_height = 0.0, 0.0, 0.18
         
-        # Animation States
         self.is_waving = False
         self.wave_step = 0.0
         self.is_sitting = False
         self.sit_lerp = 0.0
+        self.is_test_stepping = False
+        self.step_phase = 0.0 
         
         self.joint_names = [
             'fl_hip_joint', 'fl_thigh_joint', 'fl_calf_joint',
@@ -48,71 +49,90 @@ class JaxTeleopBody(Node):
         self.timer = self.create_timer(0.05, self.publish_stance)
         print(msg)
 
+    def solve_ik(self, x, z):
+        l1, l2 = self.L1, self.L2
+        z = max(0.05, min(l1 + l2 - 0.01, abs(z)))
+        d_target = math.sqrt(x**2 + z**2)
+        d_target = max(0.05, min(l1 + l2 - 0.001, d_target))
+        
+        cos_c_targ = (l1**2 + l2**2 - d_target**2) / (2 * l1 * l2)
+        abs_calf_targ = -(math.pi - math.acos(max(-1.0, min(1.0, cos_c_targ))))
+        
+        cos_t_targ = (l1**2 + d_target**2 - l2**2) / (2 * l1 * d_target)
+        thigh_int = math.acos(max(-1.0, min(1.0, cos_t_targ)))
+        abs_thigh_targ = (thigh_int - math.atan2(x, z))
+        
+        # Reference (0.18m)
+        d_perf = self.perfect_h
+        cos_c_perf = (l1**2 + l2**2 - d_perf**2) / (2 * l1 * l2)
+        abs_calf_perf = -(math.pi - math.acos(max(-1.0, min(1.0, cos_c_perf))))
+        cos_t_perf = (l1**2 + d_perf**2 - l2**2) / (2 * l1 * d_perf)
+        abs_thigh_perf = math.acos(max(-1.0, min(1.0, cos_t_perf)))
+
+        return (abs_thigh_targ - abs_thigh_perf), (abs_calf_targ - abs_calf_perf)
+
     def get_key(self, settings):
         tty.setraw(sys.stdin.fileno())
         rlist, _, _ = select.select([sys.stdin], [], [], 0.1)
-        if rlist:
-            key = sys.stdin.read(1).lower()
-        else:
-            key = ''
+        key = sys.stdin.read(1).lower() if rlist else ''
         termios.tcsetattr(sys.stdin, termios.TCSADRAIN, settings)
         return key
 
     def publish_stance(self):
         traj = JointTrajectory()
-        traj.header.stamp.sec = 0
-        traj.header.stamp.nanosec = 0
         traj.joint_names = self.joint_names
         
-        # --- 1. THE SMOOTHING ENGINE (The "Universal Lerp") ---
-        # This makes current values drift toward targets
-        lerp_speed = 0.2  # Adjust 0.05 to 0.2 for speed
-        self.pitch += (self.t_pitch - self.pitch) * lerp_speed
-        self.roll += (self.t_roll - self.roll) * lerp_speed
-        self.height += (self.t_height - self.height) * lerp_speed
+        # 1. SMOOTHING
+        self.pitch += (self.t_pitch - self.pitch) * 0.15
+        self.roll += (self.t_roll - self.roll) * 0.15
+        self.height += (self.t_height - self.height) * 0.15
 
         # Smooth Sit Transition
-        if self.is_sitting and self.sit_lerp < 1.0:
-            self.sit_lerp += 0.05
-        elif not self.is_sitting and self.sit_lerp > 0.0:
-            self.sit_lerp -= 0.05
+        if self.is_sitting and self.sit_lerp < 1.0: self.sit_lerp += 0.05
+        elif not self.is_sitting and self.sit_lerp > 0.0: self.sit_lerp -= 0.05
 
-        # --- 2. BASE STANCE ---
-        fl_t_base = self.height + self.pitch + self.roll
-        fr_t_base = self.height + self.pitch - self.roll
-        rl_t_base = self.height - self.pitch + self.roll
-        rr_t_base = self.height - self.pitch - self.roll
+        # 2. COORDINATE PREP
+        # Normal Body Height Logic
+        z_fl = self.height - (self.pitch * 0.1) + (self.roll * 0.1)
+        z_fr = self.height - (self.pitch * 0.1) - (self.roll * 0.1)
+        z_rl = self.height + (self.pitch * 0.1) + (self.roll * 0.1)
+        z_rr = self.height + (self.pitch * 0.1) - (self.roll * 0.1)
+        # Add this to the Coordinate Prep section if you want the front to rise while sitting
+        z_fl = z_fl * (1 - self.sit_lerp) + 0.23 * self.sit_lerp
+        z_fr = z_fr * (1 - self.sit_lerp) + 0.23 * self.sit_lerp
 
-        calf_ratio = -2.5 
-        fl_c_base = fl_t_base * calf_ratio
-        fr_c_base = fr_t_base * calf_ratio
-        rl_c_base = rl_t_base * calf_ratio
-        rr_c_base = rr_t_base * calf_ratio
 
-        # --- 3. SIT TARGET POSES ---
-        fl_t_sit, fr_t_sit = -0.3, -0.3
-        fl_c_sit, fr_c_sit = 0.7, 0.7
-        rl_t_sit, rr_t_sit = 0.5, 0.5
-        rl_c_sit, rr_c_sit = -0.7, -0.7
 
-        # --- 4. BLENDING ---
-        fl_t = fl_t_base * (1 - self.sit_lerp) + fl_t_sit * self.sit_lerp
-        fr_t = fr_t_base * (1 - self.sit_lerp) + fr_t_sit * self.sit_lerp
-        rl_t = rl_t_base * (1 - self.sit_lerp) + rl_t_sit * self.sit_lerp
-        rr_t = rr_t_base * (1 - self.sit_lerp) + rr_t_sit * self.sit_lerp
+        # Apply SIT LERP (Front stays up, Rear goes down)
+        sit_height = 0.10 
+        z_rl = z_rl * (1 - self.sit_lerp) + sit_height * self.sit_lerp
+        z_rr = z_rr * (1 - self.sit_lerp) + sit_height * self.sit_lerp
 
-        fl_c = fl_c_base * (1 - self.sit_lerp) + fl_c_sit * self.sit_lerp
-        fr_c = fr_c_base * (1 - self.sit_lerp) + fr_c_sit * self.sit_lerp
-        rl_c = rl_c_base * (1 - self.sit_lerp) + rl_c_sit * self.sit_lerp
-        rr_c = rr_c_base * (1 - self.sit_lerp) + rr_c_sit * self.sit_lerp
+        # 3. TEST STEP OVERRIDE (Front Left)
+        step_x, step_z_off = 0.0, 0.0
+        if self.is_test_stepping:
+            self.step_phase += 0.1
+            if self.step_phase > 1.0: 
+                self.step_phase = 0.0
+                self.is_test_stepping = False
+            step_z_off = -0.04 * math.sin(math.pi * self.step_phase)
+            step_x = -0.05 * math.sin(math.pi * self.step_phase)
+            z_fl += step_z_off
+
+        # 4. SOLVE IK
+        fl_t, fl_c = self.solve_ik(step_x, z_fl)
+        fr_t, fr_c = self.solve_ik(0, z_fr)
+        rl_t, rl_c = self.solve_ik(0, z_rl)
+        rr_t, rr_c = self.solve_ik(0, z_rr)
         
         fl_h = fr_h = rl_h = rr_h = 0.0
 
-        # --- 5. WAVE OVERRIDE ---
+        # 5. WAVE OVERRIDE (Total Manual Control for Wave)
         if self.is_waving:
             self.wave_step += 0.3
-            fl_t = -1.2           
-            fl_c = -1.8           
+            # Lift FL high and tuck calf
+            fl_t = -1.0
+            fl_c = -1.8
             fl_h = 0.4 * math.sin(self.wave_step)
 
         point = JointTrajectoryPoint()
@@ -125,30 +145,28 @@ def main():
     settings = termios.tcgetattr(sys.stdin)
     rclpy.init()
     node = JaxTeleopBody()
-    
     try:
         while rclpy.ok():
             key = node.get_key(settings)
-            # We now update TARGETS instead of the raw variables
             if key == 'w': node.t_pitch += 0.05
             elif key == 's': node.t_pitch -= 0.05
             elif key == 'a': node.t_roll -= 0.05
             elif key == 'd': node.t_roll += 0.05
-            elif key == 'r': node.t_height -= 0.05
-            elif key == 'f': node.t_height += 0.05
+            elif key == 'r': node.t_height = min(0.24, node.t_height + 0.01)
+            elif key == 'f': node.t_height = max(0.08, node.t_height - 0.01)
             elif key == 'h': 
                 node.is_waving = not node.is_waving
                 if not node.is_waving: node.wave_step = 0.0
             elif key == 'k': node.is_sitting = not node.is_sitting
+            elif key == 't': 
+                node.is_test_stepping = True
+                node.step_phase = 0.0
             elif key == ' ': 
-                # Spacebar just zeroes the targets—the LERP handles the rest!
-                node.t_pitch, node.t_roll, node.t_height = 0.0, 0.0, 0.0
-                node.is_waving = False
+                node.t_pitch, node.t_roll, node.t_height = 0.0, 0.0, 0.18
                 node.is_sitting = False
+                node.is_waving = False
             elif key == '\x03': break
-            
             rclpy.spin_once(node, timeout_sec=0.01)
-            
     finally:
         termios.tcsetattr(sys.stdin, termios.TCSADRAIN, settings)
         node.destroy_node()
